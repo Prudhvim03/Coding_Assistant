@@ -4,7 +4,6 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 
-# --- Load Environment Variables ---
 load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -14,76 +13,111 @@ if not TAVILY_API_KEY:
 if not GROQ_API_KEY:
     GROQ_API_KEY = st.text_input("Enter your Groq API key:", type="password")
 
-# --- Custom CSS for Futuristic UI ---
-css = """
-<style>
-:root {
-  --primary: #2b5876;
-  --secondary: #4e4376;
-  --accent: #f6d365;
-  --text: #ffffff;
+THEMES = {
+    "Classic": {
+        "primary": "#1E88E5",
+        "background": "#FFFFFF",
+        "secondary": "#F5F5F5",
+        "text": "#212121",
+        "accent": "#00B0FF",
+        "text_on_primary": "#000000",
+    },
+    "Dark": {
+        "primary": "#BB86FC",
+        "background": "#121212",
+        "secondary": "#1E1E1E",
+        "text": "#E0E0E0",
+        "accent": "#03D8F4",
+        "text_on_primary": "#000000",
+    },
+    "Ocean": {
+        "primary": "#03A9F4",
+        "background": "#E1F5FE",
+        "secondary": "#B3E5FC",
+        "text": "#01579B",
+        "accent": "#4CA1AF",
+        "text_on_primary": "#000000",
+    },
+    "Sunset": {
+        "primary": "#8D6E63",
+        "background": "#FFF3E0",
+        "secondary": "#FF8A65",
+        "text": "#5D4037",
+        "accent": "#FF7043",
+        "text_on_primary": "#000000",
+    },
 }
-.stApp {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  color: var(--text);
-}
-.stTextInput input, .stSelectbox select, .stTextArea textarea {
-  background-color: rgba(255,255,255,0.2);
-  color: var(--text);
-  border: 1px solid var(--secondary);
-  border-radius: 10px;
-  padding: 10px;
-  margin: 5px 0;
-}
-.stButton button {
-  background: linear-gradient(90deg, var(--accent) 0%, #f6d365 100%);
-  color: black;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  padding: 10px 20px;
-  margin: 5px 0;
-}
-.stMarkdown, .stCode, .stLink {
-  color: var(--text);
-}
-.link {
-  color: var(--accent);
-}
-.card {
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  padding: 15px;
-  margin: 10px 0;
-}
-.footer {
-  text-align: center;
-  font-size: 0.7em;
-  color: #ccc;
-  margin-top: -1.5em;
-  margin-bottom: 1em;
-}
-</style>
-"""
-st.markdown(css, unsafe_allow_html=True)
 
-# --- App Title and Caption ---
-st.title("🚀 CodeQ: AI Coding Assistant")
-st.caption("Ask any coding question and get code, explanations, and reference links!")
-st.markdown("""<div class="footer">
-Created by Prudhvi
-</div>""", unsafe_allow_html=True)
-
-# --- Sidebar: Settings ---
 with st.sidebar:
     st.title("⚙️ Settings")
+    theme_name = st.selectbox("Theme", list(THEMES.keys()))
     language = st.selectbox(
         "Programming Language",
         ["Python", "Java", "C", "C++", "JavaScript", "Go", "Rust"]
     )
     show_explanation = st.checkbox("Show Explanation", value=True)
 
-# --- Main UI ---
+theme = THEMES[theme_name]
+
+css = f"""
+<style>
+:root {{
+  --primary: {theme['primary']};
+  --background: {theme['background']};
+  --secondary: {theme['secondary']};
+  --text: {theme['text']};
+  --accent: {theme['accent']};
+}}
+.stApp {{
+  background: var(--background);
+  color: var(--text);
+}}
+.stTextInput input, .stSelectbox select, .stTextArea textarea {{
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 5px 0;
+}}
+.stButton button {{
+  background: var(--primary);
+  color: {theme['text_on_primary']};
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  padding: 10px 20px;
+  margin: 5px 0;
+}}
+.stMarkdown, .stCode, .stLink {{
+  color: var(--text);
+}}
+.link {{
+  color: var(--accent);
+}}
+.card {{
+  background: var(--secondary);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px 0;
+}}
+.footer {{
+  text-align: center;
+  font-size: 0.7em;
+  color: {theme['accent']};
+  margin-top: -1.5em;
+  margin-bottom: 1em;
+}}
+</style>
+"""
+st.markdown(css, unsafe_allow_html=True)
+
+st.title("🚀 CodeQ: AI Coding Assistant (Enhanced)")
+st.caption("Ask any coding question and get code, explanations, reference links, and more!")
+st.markdown("""<div class="footer">
+Created by Prudhvi
+</div>""", unsafe_allow_html=True)
+
 question = st.text_area(
     "Enter your coding question (like GeeksforGeeks questions):",
     height=100,
@@ -98,36 +132,50 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
         links = [result["url"] for result in response.get("results", [])[:5]]
 
     # --- Groq LLM ---
-    with st.spinner("🤖 Generating code and explanation..."):
+    with st.spinner("🤖 Generating code and analysis..."):
         groq_client = Groq(api_key=GROQ_API_KEY)
         prompt = (
             f"Write a clear, efficient code snippet in {language} to solve the following coding question:\n\n"
             f"{question}\n\n"
-            f"Return your answer in this format:\n"
-            f"<code>\n[code here]\n</code>\n"
+            "Return your answer in this format:\n"
+            "<code>\n[code here]\n</code>\n"
+            "<time_complexity>\n[time complexity here]\n</time_complexity>\n"
+            "<space_complexity>\n[space complexity here]\n</space_complexity>\n"
+            "<difficulty>\n[Easy/Medium/Hard]\n</difficulty>\n"
+            "<alternatives>\n[alternative solution(s) here]\n</alternatives>\n"
+            "<alternatives_complexity>\n[time/space complexity for each alternative]\n</alternatives_complexity>\n"
+            "<explanation>\n[concise explanation here]\n</explanation>\n"
+            "<flow>\n[step-by-step flow of execution here]\n</flow>\n"
         )
-        if show_explanation:
-            prompt += "<explanation>\n[concise explanation here]\n</explanation>\n"
-
         response = groq_client.chat.completions.create(
-            model="llama3-70b-8192",  # Or your preferred Groq model
+            model="llama3-70b-8192",
             messages=[
                 {"role": "system", "content": "You are an expert coding tutor and problem solver."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
-            max_tokens=1200
+            max_tokens=2000
         )
         answer = response.choices[0].message.content
 
-        # Parse code and explanation
-        code_part, explanation_part = "", ""
-        if "<code>" in answer and "</code>" in answer:
-            code_part = answer.split("<code>")[1].split("</code>")[0].strip()
-        if show_explanation and "<explanation>" in answer and "</explanation>" in answer:
-            explanation_part = answer.split("<explanation>")[1].split("</explanation>")[0].strip()
+        # --- Parse LLM Output ---
+        def extract_tag(content, tag):
+            start = f"<{tag}>"
+            end = f"</{tag}>"
+            if start in content and end in content:
+                return content.split(start)[1].split(end)[0].strip()
+            return ""
 
-    # --- Display Reference Links ---
+        code = extract_tag(answer, "code")
+        time_complexity = extract_tag(answer, "time_complexity")
+        space_complexity = extract_tag(answer, "space_complexity")
+        difficulty = extract_tag(answer, "difficulty")
+        alternatives = extract_tag(answer, "alternatives")
+        alternatives_complexity = extract_tag(answer, "alternatives_complexity")
+        explanation = extract_tag(answer, "explanation")
+        flow = extract_tag(answer, "flow")
+
+    # --- Reference Links ---
     st.subheader("🔗 Reference Links")
     if links:
         for link in links:
@@ -135,21 +183,41 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
     else:
         st.info("No reference links found.")
 
-    # --- Display Code ---
+    # --- Main Solution ---
     st.subheader(f"💻 Code Snippet ({language})")
-    if code_part:
-        st.code(code_part, language=language.lower())
+    if code:
+        st.code(code, language=language.lower())
     else:
         st.info("No code generated.")
 
-    # --- Display Explanation ---
-    if show_explanation and explanation_part:
-        st.subheader("📝 Explanation")
-        st.markdown(explanation_part)
+    # --- Complexity & Difficulty ---
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Time Complexity", time_complexity or "N/A")
+    with col2:
+        st.metric("Space Complexity", space_complexity or "N/A")
+    with col3:
+        st.metric("Difficulty", difficulty or "N/A")
+
+    # --- Explanation & Flow ---
+    if show_explanation:
+        if explanation:
+            st.subheader("📝 Explanation")
+            st.markdown(explanation)
+        if flow:
+            st.subheader("🔍 Flow of Execution")
+            st.markdown(flow)
+
+    # --- Alternative Solutions ---
+    if alternatives:
+        st.subheader("🔄 Alternative Solutions")
+        st.markdown(alternatives)
+        st.subheader("⏳ Alternative Solutions Complexity")
+        st.markdown(alternatives_complexity or "N/A")
 
     # --- Download Code ---
-    if code_part:
-        st.download_button("Download Code", code_part, file_name=f"solution.{language.lower()}")
+    if code:
+        st.download_button("Download Code", code, file_name=f"solution.{language.lower()}")
 
 with st.expander("💡 Tips for best results"):
     st.markdown("""
