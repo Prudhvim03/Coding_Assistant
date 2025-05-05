@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # --- Page Config ---
 st.set_page_config(
     page_title="CodeQ: AI Coding Assistant",
-    page_icon="🧑‍💻",
+    page_icon="</>",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -197,7 +197,7 @@ css = f"""
 st.markdown(css, unsafe_allow_html=True)
 
 # --- Main UI ---
-st.markdown(f"<h1 style='margin-bottom:0;'>🧑‍💻 CodeQ:AI Coding Assistant</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='margin-bottom:0;'> CodeQ:AI Coding Assistant</h1>", unsafe_allow_html=True)
 st.caption("Ask any coding question and get code, explanations, reference links, and more!")
 st.markdown(
     """<div class="footer" style="text-align: center; color: var(--accent); margin-top: -1em; margin-bottom: 1em;">
@@ -317,5 +317,4 @@ with st.expander("💡 Tips for best results"):
     """)
 
 st.markdown("""<div class="footer">
-Created by Ƥ𝔯ü𝑑hѵ𝖎
 </div>""", unsafe_allow_html=True)
