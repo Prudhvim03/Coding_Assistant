@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import graphviz
 import subprocess
 from streamlit_ace import st_ace
-import ast
 import random
 
 load_dotenv()
@@ -246,11 +245,51 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
     # --- Hotspots ---
     if enable_hotspots and code:
         st.subheader("🔥 Code Hotspots")
-        hotspot_lines = [random.randint(1, len(code.split('\n'))) for _ in range(2)]  # Mock hotspots
+        lines = code.split('\n')
+        if len(lines) > 2:
+            hotspot_lines = random.sample(range(1, len(lines)+1), min(2, len(lines)))
+        else:
+            hotspot_lines = [1]
         hotspot_html = ""
-        for i, line in enumerate(code.split('\n')):
-            if i+1 in hotspot_lines:
+        for i, line in enumerate(lines):
+            if (i+1) in hotspot_lines:
                 hotspot_html += f'<div class="hotspot">{line}</div><br>'
             else:
                 hotspot_html += f'{line}<br>'
-        st.markdown(hotspot_html, unsafe_allow_html
+        st.markdown(hotspot_html, unsafe_allow_html=True)
+
+    # --- Multi-Agent Analysis Tabs ---
+    if enable_multiple_agents:
+        st.subheader("🤖 Multi-Agent AI Analysis")
+        tabs = st.tabs(["Explainer", "Optimizer", "Debugger"])
+        with tabs[0]:
+            st.markdown(f"**Explanation:**\n\n{explanation or 'N/A'}")
+        with tabs[1]:
+            st.markdown(f"**Optimization Suggestions:**\n\n{optimizer or 'N/A'}")
+        with tabs[2]:
+            st.markdown(f"**Potential Bugs & Fixes:**\n\n{debugger or 'N/A'}")
+
+    # --- Alternative Solutions ---
+    if alternatives:
+        st.subheader("🔄 Alternative Solutions")
+        st.markdown(alternatives)
+        st.subheader("⏳ Alternative Solutions Complexity")
+        st.markdown(alternatives_complexity or "N/A")
+
+    # --- Related Concepts ---
+    if related:
+        st.subheader("🧠 Related Concepts")
+        for topic in related.split('\n'):
+            if topic.strip():
+                st.markdown(f"- {topic.strip()}")
+
+    # --- Download Code ---
+    if code:
+        st.download_button("Download Code", code, file_name=f"solution.{language.lower()}")
+
+with st.expander("💡 Tips for best results"):
+    st.markdown("""
+    - Ask clear, specific coding questions (e.g., 'Binary search in Java', 'Fibonacci using recursion').
+    - Use the explanation toggle for a concise summary.
+    - Always review generated code before using in production.
+    """)
