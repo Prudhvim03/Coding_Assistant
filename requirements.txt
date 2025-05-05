@@ -1,9 +1,5 @@
-streamlit>=1.24.0
-python-dotenv>=1.0.0
-tavily-python>=0.3.0
-groq>=0.6.0
-graphviz>=0.20.1
-streamlit-ace>=0.1.1
-pylint>=3.0.0
-pandas>=2.0.0
-numpy>=1.21.0
+streamlit
+python-dotenv
+tavily-python
+groq
+requests
