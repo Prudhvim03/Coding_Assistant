@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # --- Page Config ---
 st.set_page_config(
     page_title="CodeQ: AI Coding Assistant",
-    page_icon="<🧑‍💻>",
+    page_icon="🧑‍💻",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -16,11 +16,6 @@ st.set_page_config(
 load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-if not TAVILY_API_KEY:
-    TAVILY_API_KEY = st.text_input("Enter your Tavily API key:", type="password", key="tavily_key")
-if not GROQ_API_KEY:
-    GROQ_API_KEY = st.text_input("Enter your Groq API key:", type="password", key="groq_key")
 
 # --- Theme & Layout ---
 THEMES = {
@@ -53,6 +48,7 @@ THEMES = {
     }
 }
 
+# --- Sidebar: Settings ---
 with st.sidebar:
     st.title("⚙️ Settings")
     theme_name = st.selectbox("Theme", list(THEMES.keys()))
@@ -62,9 +58,15 @@ with st.sidebar:
     )
     show_explanation = st.checkbox("Show Explanation", value=True)
     show_flow = st.checkbox("Show Execution Flow", value=True)
+    st.markdown("---")
+    if not TAVILY_API_KEY:
+        TAVILY_API_KEY = st.text_input("Tavily API Key", type="password", key="tavily_key")
+    if not GROQ_API_KEY:
+        GROQ_API_KEY = st.text_input("Groq API Key", type="password", key="groq_key")
 
 theme = THEMES[theme_name]
 
+# --- Custom CSS ---
 css = f"""
 <style>
 :root {{
@@ -131,25 +133,43 @@ css = f"""
 st.markdown(css, unsafe_allow_html=True)
 
 # --- Main UI ---
-st.title("<🧑‍💻> CodeQ: Interactive AI Coding Assistant")
+st.markdown(f"<h1 style='margin-bottom:0;'>🧑‍💻 CodeQ: Interactive AI Coding Assistant</h1>", unsafe_allow_html=True)
 st.caption("Ask any coding question and get code, explanations, reference links, and more!")
-st.markdown("""<div class="footer" style="text-align: center; color: var(--accent); margin-top: -1em; margin-bottom: 1em;">
-Created by Prudhvi
-</div>""", unsafe_allow_html=True)
-question = st.text_area(
-    "Enter your coding question (like GeeksforGeeks questions):",
-    height=100,
-    placeholder="e.g., Reverse a linked list in Python"
+
+st.markdown(
+    """<div class="footer" style="text-align: center; color: var(--accent); margin-top: -1em; margin-bottom: 1em;">
+    Created by Prudhvi
+    </div>""",
+    unsafe_allow_html=True
 )
 
-if st.button("Get Answer", use_container_width=True) and question.strip():
-    # --- Tavily Search ---
+# --- Question Input in a Card ---
+with st.container():
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    question = st.text_area(
+        "📝 **Enter your coding question** (like GeeksforGeeks questions):",
+        height=80,
+        placeholder="e.g., Reverse a linked list in Python"
+    )
+    col_q1, col_q2 = st.columns([4,1])
+    with col_q2:
+        get_answer = st.button("Get Answer", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def extract_tag(content, tag):
+    start = f"<{tag}>"
+    end = f"</{tag}>"
+    if start in content and end in content:
+        return content.split(start)[1].split(end)[0].strip()
+    return ""
+
+if get_answer and question.strip():
+    # --- Reference Links & LLM ---
     with st.spinner("🔎 Searching for reference links..."):
         tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
         response = tavily_client.search(question)
         links = [result["url"] for result in response.get("results", [])[:5]]
 
-    # --- Groq LLM ---
     with st.spinner("🤖 Generating code and analysis..."):
         groq_client = Groq(api_key=GROQ_API_KEY)
         prompt = (
@@ -176,14 +196,6 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
         )
         answer = response.choices[0].message.content
 
-        # --- Parse LLM Output ---
-        def extract_tag(content, tag):
-            start = f"<{tag}>"
-            end = f"</{tag}>"
-            if start in content and end in content:
-                return content.split(start)[1].split(end)[0].strip()
-            return ""
-
         code = extract_tag(answer, "code")
         time_complexity = extract_tag(answer, "time_complexity")
         space_complexity = extract_tag(answer, "space_complexity")
@@ -193,50 +205,48 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
         explanation = extract_tag(answer, "explanation")
         flow = extract_tag(answer, "flow")
 
-    # --- Reference Links ---
-    st.subheader("🔗 Reference Links")
-    if links:
-        for link in links:
-            st.markdown(f"- <span class='link'>[{link}]({link})</span>", unsafe_allow_html=True)
-    else:
-        st.info("No reference links found.")
+    # --- Results Layout ---
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    col1, col2 = st.columns([2, 1])
 
-    # --- Main Solution ---
-    st.subheader(f"💻 Code Snippet ({language})")
-    if code:
-        st.code(code, language=language.lower())
-    else:
-        st.info("No code generated.")
-
-    # --- Complexity & Difficulty ---
-    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Time Complexity", time_complexity or "N/A")
-    with col2:
-        st.metric("Space Complexity", space_complexity or "N/A")
-    with col3:
-        st.metric("Difficulty", difficulty or "N/A")
+        st.subheader(f"💻 Code Snippet ({language})")
+        if code:
+            st.code(code, language=language.lower())
+        else:
+            st.info("No code generated.")
 
-    # --- Explanation & Flow ---
-    if show_explanation:
-        if explanation:
+        if show_explanation and explanation:
             st.subheader("📝 Explanation")
             st.markdown(explanation)
-    if show_flow and flow:
-        st.subheader("🔍 Flow of Execution")
-        st.markdown(flow)
+        if show_flow and flow:
+            st.subheader("🔍 Flow of Execution")
+            st.markdown(flow)
 
-    # --- Alternative Solutions ---
-    if alternatives:
-        st.subheader("🔄 Alternative Solutions")
-        st.markdown(alternatives)
-        st.subheader("⏳ Alternative Solutions Complexity")
-        st.markdown(alternatives_complexity or "N/A")
+        if code:
+            st.download_button("⬇️ Download Code", code, file_name=f"solution.{language.lower()}")
 
-    # --- Download Code ---
-    if code:
-        st.download_button("Download Code", code, file_name=f"solution.{language.lower()}")
+    with col2:
+        st.subheader("📊 Complexity & Difficulty")
+        st.metric("Time", time_complexity or "N/A")
+        st.metric("Space", space_complexity or "N/A")
+        st.metric("Difficulty", difficulty or "N/A")
 
+        st.subheader("🔗 Reference Links")
+        if links:
+            for link in links:
+                st.markdown(f"- <span class='link'>[{link}]({link})</span>", unsafe_allow_html=True)
+        else:
+            st.info("No reference links found.")
+
+        if alternatives:
+            st.subheader("🔄 Alternatives")
+            st.markdown(alternatives)
+            st.markdown(f"**Complexity:** {alternatives_complexity or 'N/A'}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Tips ---
 with st.expander("💡 Tips for best results"):
     st.markdown("""
     - Ask clear, specific coding questions (e.g., 'Binary search in Java', 'Fibonacci using recursion').
