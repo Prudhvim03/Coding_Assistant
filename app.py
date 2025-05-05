@@ -17,7 +17,7 @@ load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- THEMES ---
+# --- Theme & Layout ---
 THEMES = {
     "Neon": {
         "primary": "#1E88E5",
@@ -111,7 +111,7 @@ with st.sidebar:
 
 theme = THEMES[theme_name]
 
-# --- Custom CSS for Section Patterns ---
+# --- Custom CSS ---
 css = f"""
 <style>
 :root {{
@@ -127,96 +127,77 @@ css = f"""
   background: var(--background);
   color: var(--text);
 }}
-/* General card style */
-.card {{
-  border-radius: 16px;
-  margin: 18px 0 18px 0;
-  padding: 18px 22px;
+.stTextInput input, .stSelectbox select, .stTextArea textarea {{
+  background-color: rgba(255, 255, 255, 0.9);
   color: var(--text);
-  position: relative;
-  overflow: hidden;
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 5px 0;
 }}
-/* Section-specific patterns */
-.pattern-header {{
-  background: repeating-linear-gradient(135deg, var(--primary), var(--primary) 10px, var(--secondary) 10px, var(--secondary) 20px);
-  color: white;
-  border-radius: 16px 16px 0 0;
-  padding: 25px 20px 15px 20px;
-  font-size: 2.1rem;
+.stButton button {{
+  background: var(--primary);
+  color: var(--text-on-primary);
+  border: none;
+  border-radius: 10px;
   font-weight: bold;
-  letter-spacing: 2px;
-  position: relative;
+  padding: 10px 20px;
+  margin: 5px 0;
 }}
-.pattern-links {{
-  background: radial-gradient(circle at 20% 40%, var(--accent) 10%, transparent 70%), var(--card-bg);
-  border-left: 8px solid var(--primary);
+.stMarkdown, .stCode, .stLink {{
+  color: var(--text);
 }}
-.pattern-code {{
-  background: linear-gradient(120deg, var(--primary) 20%, var(--secondary) 100%);
-  box-shadow: 0 4px 24px 0 var(--accent);
-  color: var(--text-on-primary);
+.link {{
+  color: var(--accent);
 }}
-.pattern-metrics {{
-  background: repeating-linear-gradient(90deg, var(--secondary), var(--secondary) 8px, transparent 8px, transparent 16px), var(--card-bg);
-  border-radius: 16px;
+.card {{
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 15px;
+  margin: 10px 0;
 }}
-.pattern-explanation {{
-  background: repeating-linear-gradient(45deg, var(--accent), var(--accent) 8px, transparent 8px, transparent 16px), var(--card-bg);
-}}
-.pattern-flow {{
-  background: radial-gradient(circle, var(--primary) 0%, var(--secondary) 100%);
-  color: var(--text-on-primary);
-}}
-.pattern-alternatives {{
-  background: repeating-linear-gradient(135deg, var(--secondary), var(--secondary) 10px, transparent 10px, transparent 20px), var(--card-bg);
-}}
-/* Prudhvi badge */
-.prudhvi-badge {{
-  position: absolute;
-  top: 8px;
-  right: 18px;
-  background: var(--accent);
-  color: var(--text-on-primary);
-  border-radius: 12px;
-  padding: 4px 16px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  box-shadow: 0 2px 10px 0 rgba(0,0,0,0.08);
-  z-index: 2;
-}}
-/* Footer */
 .footer {{
   text-align: center;
-  font-size: 0.9em;
+  font-size: 0.7em;
   color: var(--accent);
-  margin-top: 2em;
+  margin-top: -1.5em;
   margin-bottom: 1em;
+}}
+.badge {{
+  background: var(--secondary);
+  color: var(--text);
+  border-radius: 15px;
+  padding: 5px 10px;
+  margin: 0 5px;
+  display: inline-block;
+  font-weight: bold;
 }}
 </style>
 """
 st.markdown(css, unsafe_allow_html=True)
 
 # --- Main UI ---
-st.markdown(f"""
-<div class="card pattern-header" style="margin-bottom:0;">
-  <span>🧑‍💻 CodeQ: AI Coding Assistant</span>
-  <span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f"<h1 style='margin-bottom:0;'>🧑‍💻 CodeQ: Interactive AI Coding Assistant</h1>", unsafe_allow_html=True)
 st.caption("Ask any coding question and get code, explanations, reference links, and more!")
+st.markdown(
+    """<div class="footer" style="text-align: center; color: var(--accent); margin-top: -1em; margin-bottom: 1em;">
+    Created by Prudhvi
+    </div>""",
+    unsafe_allow_html=True
+)
 
-# --- Question Input ---
+# --- Question Input in a Card ---
 with st.container():
-    st.markdown('<div class="card" style="background: var(--card-bg);">', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     question = st.text_area(
-        "📝 **Enter your coding question** (like GeeksforGeeksLeetCode, etc. questions):",
+        "📝 **Enter your coding question** (like GeeksforGeeks questions):",
         height=80,
         placeholder="e.g., Reverse a linked list in Python"
     )
     col_q1, col_q2 = st.columns([4,1])
     with col_q2:
         get_answer = st.button("Get Answer", use_container_width=True)
-    st.markdown('<span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 def extract_tag(content, tag):
@@ -268,58 +249,46 @@ if get_answer and question.strip():
         explanation = extract_tag(answer, "explanation")
         flow = extract_tag(answer, "flow")
 
-    # --- Reference Links ---
-    st.markdown('<div class="card pattern-links"><span class="prudhvi-badge">Created by Prudhvi</span>', unsafe_allow_html=True)
-    st.subheader("🔗 Reference Links")
-    if links:
-        for link in links:
-            st.markdown(f"- <span class='link'>[{link}]({link})</span>", unsafe_allow_html=True)
-    else:
-        st.info("No reference links found.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # --- Results Layout ---
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    col1, col2 = st.columns([2, 1])
 
-    # --- Main Solution ---
-    st.markdown(f'<div class="card pattern-code"><span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>', unsafe_allow_html=True)
-    st.subheader(f"💻 Code Snippet ({language})")
-    if code:
-        st.code(code, language=language.lower())
-    else:
-        st.info("No code generated.")
-    if code:
-        st.download_button("⬇️ Download Code", code, file_name=f"solution.{language.lower()}")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # --- Complexity & Difficulty ---
-    st.markdown('<div class="card pattern-metrics"><span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Time Complexity", time_complexity or "N/A")
+        st.subheader(f"💻 Code Snippet ({language})")
+        if code:
+            st.code(code, language=language.lower())
+        else:
+            st.info("No code generated.")
+
+        if show_explanation and explanation:
+            st.subheader("📝 Explanation")
+            st.markdown(explanation)
+        if show_flow and flow:
+            st.subheader("🔍 Flow of Execution")
+            st.markdown(flow)
+
+        if code:
+            st.download_button("⬇️ Download Code", code, file_name=f"solution.{language.lower()}")
+
     with col2:
-        st.metric("Space Complexity", space_complexity or "N/A")
-    with col3:
+        st.subheader("📊 Complexity & Difficulty")
+        st.metric("Time", time_complexity or "N/A")
+        st.metric("Space", space_complexity or "N/A")
         st.metric("Difficulty", difficulty or "N/A")
+
+        st.subheader("🔗 Reference Links")
+        if links:
+            for link in links:
+                st.markdown(f"- <span class='link'>[{link}]({link})</span>", unsafe_allow_html=True)
+        else:
+            st.info("No reference links found.")
+
+        if alternatives:
+            st.subheader("🔄 Alternatives")
+            st.markdown(alternatives)
+            st.markdown(f"**Complexity:** {alternatives_complexity or 'N/A'}")
+
     st.markdown('</div>', unsafe_allow_html=True)
-
-    # --- Explanation & Flow ---
-    if show_explanation and explanation:
-        st.markdown('<div class="card pattern-explanation"><span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>', unsafe_allow_html=True)
-        st.subheader("📝 Explanation")
-        st.markdown(explanation)
-        st.markdown('</div>', unsafe_allow_html=True)
-    if show_flow and flow:
-        st.markdown('<div class="card pattern-flow"><span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>', unsafe_allow_html=True)
-        st.subheader("🔍 Flow of Execution")
-        st.markdown(flow)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # --- Alternative Solutions ---
-    if alternatives:
-        st.markdown('<div class="card pattern-alternatives"><span class="prudhvi-badge">Created by Ƥ𝔯ü𝑑hѵ𝖎</span>', unsafe_allow_html=True)
-        st.subheader("🔄 Alternative Solutions")
-        st.markdown(alternatives)
-        st.subheader("⏳ Alternative Solutions Complexity")
-        st.markdown(alternatives_complexity or "N/A")
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Tips ---
 with st.expander("💡 Tips for best results"):
@@ -328,7 +297,7 @@ with st.expander("💡 Tips for best results"):
     - Use the explanation toggle for a concise summary.
     - Always review generated code before using in production.
     """)
-    st.markdown('<span class="prudhvi-badge">Created by Prudhvi</span>', unsafe_allow_html=True)
 
 st.markdown("""<div class="footer">
+Created by Prudhvi | Powered by Tavily & Groq
 </div>""", unsafe_allow_html=True)
