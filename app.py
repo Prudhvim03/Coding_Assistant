@@ -210,7 +210,7 @@ st.markdown(
 with st.container():
     st.markdown('<div class="card">', unsafe_allow_html=True)
     question = st.text_area(
-        "📝 **Enter your coding question** (like GeeksforGeeks questions):",
+        "📝 **Enter your coding question** (like GeeksforGeeks , LeetCode, etc..):", 
         height=80,
         placeholder="e.g., Reverse a linked list in Python"
     )
@@ -289,7 +289,7 @@ if get_answer and question.strip():
             st.download_button("⬇️ Download Code", code, file_name=f"solution.{language.lower()}")
 
     with col2:
-        st.subheader("📊 Complexity & Difficulty")
+        st.subheader("Complexity & Difficulty")
         st.metric("Time", time_complexity or "N/A")
         st.metric("Space", space_complexity or "N/A")
         st.metric("Difficulty", difficulty or "N/A")
@@ -302,7 +302,7 @@ if get_answer and question.strip():
             st.info("No reference links found.")
 
         if alternatives:
-            st.subheader("🔄 Alternatives")
+            st.subheader("🔄 Alternative code")
             st.markdown(alternatives)
             st.markdown(f"**Complexity:** {alternatives_complexity or 'N/A'}")
 
