@@ -1,4 +1,4 @@
-!pip install streamlit groq python-dotenv requests
+#!pip install streamlit groq python-dotenv requests
 
 import streamlit as st
 from groq import Groq
