@@ -129,4 +129,4 @@ if question:
 if __name__ == '__main__':
     public_url = ngrok.connect(port='8501')
     print("Streamlit app running at:", public_url)
-    !streamlit run --server.port 8501 /usr/local/lib/python3.10/dist-packages/ipykernel_launcher.py 2>&1 | tee app.log &
+    #!streamlit run --server.port 8501 /usr/local/lib/python3.10/dist-packages/ipykernel_launcher.py 2>&1 | tee app.log &
