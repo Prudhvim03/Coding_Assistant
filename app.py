@@ -3,10 +3,6 @@ from tavily import TavilyClient
 from groq import Groq
 import os
 from dotenv import load_dotenv
-import graphviz
-import subprocess
-from streamlit_ace import st_ace
-import random
 
 load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -20,11 +16,11 @@ if not GROQ_API_KEY:
 THEMES = {
     "Classic": {
         "primary": "#1E88E5",
-        "background": "#8edce6",
-        "secondary": "#e3f2fd",
+        "background": "#FFFFFF",
+        "secondary": "#F5F5F5",
         "text": "#212121",
         "accent": "#00B0FF",
-        "text_on_primary": "#FFFFFF",
+        "text_on_primary": "#000000",
     },
     "Dark": {
         "primary": "#BB86FC",
@@ -47,7 +43,7 @@ THEMES = {
         "background": "#FFF3E0",
         "secondary": "#FF8A65",
         "text": "#5D4037",
-        "accent": "#4E342E",
+        "accent": "#FF7043",
         "text_on_primary": "#000000",
     },
 }
@@ -60,11 +56,6 @@ with st.sidebar:
         ["Python", "Java", "C", "C++", "JavaScript", "Go", "Rust"]
     )
     show_explanation = st.checkbox("Show Explanation", value=True)
-    enable_editor = st.checkbox("Enable Interactive Code Editor", value=True)
-    enable_quality = st.checkbox("Enable Code Quality Report", value=True)
-    enable_flow = st.checkbox("Enable Visual Flow", value=True)
-    enable_hotspots = st.checkbox("Enable Hotspots", value=True)
-    enable_multiple_agents = st.checkbox("Enable Multi-Agent Analysis", value=True)
 
 theme = THEMES[theme_name]
 
@@ -117,17 +108,12 @@ css = f"""
   margin-top: -1.5em;
   margin-bottom: 1em;
 }}
-.hotspot {{
-  background-color: #ff9999;
-  padding: 2px;
-  border-radius: 3px;
-}}
 </style>
 """
 st.markdown(css, unsafe_allow_html=True)
 
-st.title("🚀 CodeQ: Advanced AI Coding Assistant")
-st.caption("Ask any coding question and get code, explanations, reference links, and advanced analysis!")
+st.title("🚀 CodeQ: AI Coding Assistant (Enhanced)")
+st.caption("Ask any coding question and get code, explanations, reference links, and more!")
 st.markdown("""<div class="footer">
 Created by Prudhvi
 </div>""", unsafe_allow_html=True)
@@ -160,9 +146,6 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
             "<alternatives_complexity>\n[time/space complexity for each alternative]\n</alternatives_complexity>\n"
             "<explanation>\n[concise explanation here]\n</explanation>\n"
             "<flow>\n[step-by-step flow of execution here]\n</flow>\n"
-            "<optimizer>\n[optimization suggestions here]\n</optimizer>\n"
-            "<debugger>\n[potential bugs and fixes here]\n</debugger>\n"
-            "<related>\n[related concepts here]\n</related>\n"
         )
         response = groq_client.chat.completions.create(
             model="llama3-70b-8192",
@@ -171,7 +154,7 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
-            max_tokens=2500
+            max_tokens=2000
         )
         answer = response.choices[0].message.content
 
@@ -191,9 +174,6 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
         alternatives_complexity = extract_tag(answer, "alternatives_complexity")
         explanation = extract_tag(answer, "explanation")
         flow = extract_tag(answer, "flow")
-        optimizer = extract_tag(answer, "optimizer")
-        debugger = extract_tag(answer, "debugger")
-        related = extract_tag(answer, "related")
 
     # --- Reference Links ---
     st.subheader("🔗 Reference Links")
@@ -206,11 +186,7 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
     # --- Main Solution ---
     st.subheader(f"💻 Code Snippet ({language})")
     if code:
-        if enable_editor:
-            edited_code = st_ace(value=code, language=language.lower(), height=200, font_size=14)
-            code = edited_code
-        else:
-            st.code(code, language=language.lower())
+        st.code(code, language=language.lower())
     else:
         st.info("No code generated.")
 
@@ -223,51 +199,14 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
     with col3:
         st.metric("Difficulty", difficulty or "N/A")
 
-    # --- Code Quality Report ---
-    if enable_quality and code and language.lower() == "python":
-        with open("solution.py", "w") as f:
-            f.write(code)
-        result = subprocess.run(['pylint', 'solution.py'], capture_output=True, text=True)
-        st.subheader("🔍 Code Quality Report")
-        st.code(result.stdout)
-
-    # --- Visual Flow ---
-    if enable_flow and flow:
-        st.subheader("📊 Visual Flow")
-        dot = graphviz.Digraph()
-        steps = [s.strip() for s in flow.split('\n') if s.strip()]
-        for i, step in enumerate(steps):
-            dot.node(str(i), step)
-            if i > 0:
-                dot.edge(str(i-1), str(i))
-        st.graphviz_chart(dot)
-
-    # --- Hotspots ---
-    if enable_hotspots and code:
-        st.subheader("🔥 Code Hotspots")
-        lines = code.split('\n')
-        if len(lines) > 2:
-            hotspot_lines = random.sample(range(1, len(lines)+1), min(2, len(lines)))
-        else:
-            hotspot_lines = [1]
-        hotspot_html = ""
-        for i, line in enumerate(lines):
-            if (i+1) in hotspot_lines:
-                hotspot_html += f'<div class="hotspot">{line}</div><br>'
-            else:
-                hotspot_html += f'{line}<br>'
-        st.markdown(hotspot_html, unsafe_allow_html=True)
-
-    # --- Multi-Agent Analysis Tabs ---
-    if enable_multiple_agents:
-        st.subheader("🤖 Multi-Agent AI Analysis")
-        tabs = st.tabs(["Explainer", "Optimizer", "Debugger"])
-        with tabs[0]:
-            st.markdown(f"**Explanation:**\n\n{explanation or 'N/A'}")
-        with tabs[1]:
-            st.markdown(f"**Optimization Suggestions:**\n\n{optimizer or 'N/A'}")
-        with tabs[2]:
-            st.markdown(f"**Potential Bugs & Fixes:**\n\n{debugger or 'N/A'}")
+    # --- Explanation & Flow ---
+    if show_explanation:
+        if explanation:
+            st.subheader("📝 Explanation")
+            st.markdown(explanation)
+        if flow:
+            st.subheader("🔍 Flow of Execution")
+            st.markdown(flow)
 
     # --- Alternative Solutions ---
     if alternatives:
@@ -275,13 +214,6 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
         st.markdown(alternatives)
         st.subheader("⏳ Alternative Solutions Complexity")
         st.markdown(alternatives_complexity or "N/A")
-
-    # --- Related Concepts ---
-    if related:
-        st.subheader("🧠 Related Concepts")
-        for topic in related.split('\n'):
-            if topic.strip():
-                st.markdown(f"- {topic.strip()}")
 
     # --- Download Code ---
     if code:
