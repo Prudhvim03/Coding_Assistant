@@ -4,48 +4,53 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 
+# --- Page Config ---
+st.set_page_config(
+    page_title="CodeQ: AI Coding Assistant",
+    page_icon="<🧑‍💻>",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# --- Load Env Vars ---
 load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not TAVILY_API_KEY:
-    TAVILY_API_KEY = st.text_input("Enter your Tavily API key:", type="password")
+    TAVILY_API_KEY = st.text_input("Enter your Tavily API key:", type="password", key="tavily_key")
 if not GROQ_API_KEY:
-    GROQ_API_KEY = st.text_input("Enter your Groq API key:", type="password")
+    GROQ_API_KEY = st.text_input("Enter your Groq API key:", type="password", key="groq_key")
 
+# --- Theme & Layout ---
 THEMES = {
-    "Classic": {
+    "Neon": {
         "primary": "#1E88E5",
-        "background": "#FFFFFF",
-        "secondary": "#F5F5F5",
-        "text": "#212121",
-        "accent": "#00B0FF",
-        "text_on_primary": "#000000",
-    },
-    "Dark": {
-        "primary": "#BB86FC",
-        "background": "#121212",
-        "secondary": "#1E1E1E",
-        "text": "#E0E0E0",
-        "accent": "#03D8F4",
-        "text_on_primary": "#000000",
-    },
-    "Ocean": {
-        "primary": "#03A9F4",
-        "background": "#E1F5FE",
-        "secondary": "#B3E5FC",
-        "text": "#01579B",
+        "secondary": "#00B0FF",
         "accent": "#4CA1AF",
-        "text_on_primary": "#000000",
+        "background": "linear-gradient(135deg, #1E88E5 0%, #00B0FF 50%, #4CA1AF 100%)",
+        "card_bg": "rgba(255, 255, 255, 0.2)",
+        "text": "white",
+        "text_on_primary": "black"
     },
     "Sunset": {
-        "primary": "#8D6E63",
-        "background": "#FFF3E0",
-        "secondary": "#FF8A65",
-        "text": "#5D4037",
-        "accent": "#FF7043",
-        "text_on_primary": "#000000",
+        "primary": "#FF7043",
+        "secondary": "#8D6E63",
+        "accent": "#4CA1AF",
+        "background": "linear-gradient(135deg, #8D6E63 0%, #8D6E63 25%, #4CA1AF 75%, #4CA1AF 100%)",
+        "card_bg": "rgba(255, 255, 255, 0.2)",
+        "text": "white",
+        "text_on_primary": "white"
     },
+    "Cyber": {
+        "primary": "#BB86FC",
+        "secondary": "#03D8F4",
+        "accent": "#03D8F4",
+        "background": "linear-gradient(135deg, #121212 0%, #1E1E1E 50%, #03D8F4 100%)",
+        "card_bg": "rgba(30, 30, 30, 0.7)",
+        "text": "#E0E0E0",
+        "text_on_primary": "black"
+    }
 }
 
 with st.sidebar:
@@ -56,6 +61,7 @@ with st.sidebar:
         ["Python", "Java", "C", "C++", "JavaScript", "Go", "Rust"]
     )
     show_explanation = st.checkbox("Show Explanation", value=True)
+    show_flow = st.checkbox("Show Execution Flow", value=True)
 
 theme = THEMES[theme_name]
 
@@ -63,10 +69,12 @@ css = f"""
 <style>
 :root {{
   --primary: {theme['primary']};
-  --background: {theme['background']};
   --secondary: {theme['secondary']};
-  --text: {theme['text']};
   --accent: {theme['accent']};
+  --background: {theme['background']};
+  --card-bg: {theme['card_bg']};
+  --text: {theme['text']};
+  --text-on-primary: {theme['text_on_primary']};
 }}
 .stApp {{
   background: var(--background);
@@ -82,7 +90,7 @@ css = f"""
 }}
 .stButton button {{
   background: var(--primary);
-  color: {theme['text_on_primary']};
+  color: var(--text-on-primary);
   border: none;
   border-radius: 10px;
   font-weight: bold;
@@ -96,28 +104,38 @@ css = f"""
   color: var(--accent);
 }}
 .card {{
-  background: var(--secondary);
-  border-radius: 10px;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
   padding: 15px;
   margin: 10px 0;
 }}
 .footer {{
   text-align: center;
   font-size: 0.7em;
-  color: {theme['accent']};
+  color: var(--accent);
   margin-top: -1.5em;
   margin-bottom: 1em;
+}}
+.badge {{
+  background: var(--secondary);
+  color: var(--text);
+  border-radius: 15px;
+  padding: 5px 10px;
+  margin: 0 5px;
+  display: inline-block;
+  font-weight: bold;
 }}
 </style>
 """
 st.markdown(css, unsafe_allow_html=True)
 
-st.title("🚀 CodeQ: AI Coding Assistant (Enhanced)")
+# --- Main UI ---
+st.title("<🧑‍💻> CodeQ: Interactive AI Coding Assistant")
 st.caption("Ask any coding question and get code, explanations, reference links, and more!")
-st.markdown("""<div class="footer">
+st.markdown("""<div class="footer" style="text-align: center; color: var(--accent); margin-top: -1em; margin-bottom: 1em;">
 Created by Prudhvi
 </div>""", unsafe_allow_html=True)
-
 question = st.text_area(
     "Enter your coding question (like GeeksforGeeks questions):",
     height=100,
@@ -204,9 +222,9 @@ if st.button("Get Answer", use_container_width=True) and question.strip():
         if explanation:
             st.subheader("📝 Explanation")
             st.markdown(explanation)
-        if flow:
-            st.subheader("🔍 Flow of Execution")
-            st.markdown(flow)
+    if show_flow and flow:
+        st.subheader("🔍 Flow of Execution")
+        st.markdown(flow)
 
     # --- Alternative Solutions ---
     if alternatives:
@@ -225,3 +243,7 @@ with st.expander("💡 Tips for best results"):
     - Use the explanation toggle for a concise summary.
     - Always review generated code before using in production.
     """)
+
+st.markdown("""<div class="footer">
+Created by Prudhvi | Powered by Tavily & Groq
+</div>""", unsafe_allow_html=True)
