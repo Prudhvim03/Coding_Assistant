@@ -1,7 +1,6 @@
 streamlit
 tavily-python
 groq
-pyngrok
 PyPDF2
 python-dotenv
 requests
