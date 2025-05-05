@@ -19,6 +19,25 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # --- Theme & Layout ---
 THEMES = {
+    "Light": {
+        "primary": "#1976D2",
+        "secondary": "#90CAF9",
+        "accent": "#FFC107",
+        "background": "#FFFFFF",
+        "card_bg": "rgba(245, 245, 245, 0.9)",
+        "text": "#222222",
+        "text_on_primary": "#FFFFFF"
+    },
+    "Dark": {
+        "primary": "#222222",
+        "secondary": "#424242",
+        "accent": "#90CAF9",
+        "background": "#181818",
+        "card_bg": "rgba(34, 34, 34, 0.85)",
+        "text": "#F5F5F5",
+        "text_on_primary": "#FFFFFF"
+    },
+    # --- Your custom themes below ---
     "Neon": {
         "primary": "#1E88E5",
         "secondary": "#00B0FF",
@@ -178,11 +197,11 @@ css = f"""
 st.markdown(css, unsafe_allow_html=True)
 
 # --- Main UI ---
-st.markdown(f"<h1 style='margin-bottom:0;'>🧑‍💻 CodeQ: Interactive AI Coding Assistant</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='margin-bottom:0;'>🧑‍💻 CodeQ:AI Coding Assistant</h1>", unsafe_allow_html=True)
 st.caption("Ask any coding question and get code, explanations, reference links, and more!")
 st.markdown(
     """<div class="footer" style="text-align: center; color: var(--accent); margin-top: -1em; margin-bottom: 1em;">
-    Created by Prudhvi
+    Created by Ƥ𝔯ü𝑑hѵ𝖎
     </div>""",
     unsafe_allow_html=True
 )
@@ -254,19 +273,18 @@ if get_answer and question.strip():
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.subheader(f"💻 Code Snippet ({language})")
+        st.subheader(f" Code Snippet ({language})")
         if code:
             st.code(code, language=language.lower())
         else:
             st.info("No code generated.")
 
         if show_explanation and explanation:
-            st.subheader("📝 Explanation")
+            st.subheader("AI Explanation")
             st.markdown(explanation)
         if show_flow and flow:
             st.subheader("🔍 Flow of Execution")
             st.markdown(flow)
-
         if code:
             st.download_button("⬇️ Download Code", code, file_name=f"solution.{language.lower()}")
 
@@ -299,5 +317,5 @@ with st.expander("💡 Tips for best results"):
     """)
 
 st.markdown("""<div class="footer">
-Created by Prudhvi | Powered by Tavily & Groq
+Created by Ƥ𝔯ü𝑑hѵ𝖎
 </div>""", unsafe_allow_html=True)
