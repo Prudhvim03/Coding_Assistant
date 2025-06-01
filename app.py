@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 
 # --- Page Config ---
+
 st.set_page_config(
     page_title="CodeQ: AI Coding Assistant",
     page_icon="</>",
@@ -18,6 +19,7 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # --- Theme & Layout ---
+
 THEMES = {
     "Light": {
         "primary": "#1976D2",
